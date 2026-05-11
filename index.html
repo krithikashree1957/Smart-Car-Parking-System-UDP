@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Car Parking System</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<!-- ══ PARK CONFIRMATION POPUP ══════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">🅿️</div>
+      <div>
+        <div class="modal-title">Dijkstra Found Nearest Slot</div>
+        <div class="modal-sub">Algorithm Result — Shortest Path</div>
+      </div>
+    </div>
+
+    <!-- Recommended slot highlight -->
+    <div class="modal-recommend" id="modal-recommend">
+      <div class="rec-label">Recommended by Dijkstra's Algorithm</div>
+      <div class="rec-slot" id="rec-slot-num">Slot 4</div>
+      <div class="rec-dist" id="rec-slot-dist">25m from entry</div>
+      <div class="rec-path" id="rec-path">Entry → Slot 4 = 25m (shortest path)</div>
+    </div>
+
+    <!-- Alternative slots -->
+    <div class="modal-alts-label">Or choose another free slot:</div>
+    <div class="modal-alts" id="modal-alts"></div>
+
+    <!-- Buttons -->
+    <div class="modal-btns">
+      <button class="modal-btn confirm" id="modal-confirm-btn" onclick="confirmParkDijkstra()">
+        Park in Slot <span id="modal-btn-slot">4</span> (Dijkstra's Choice)
+      </button>
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE ═════════════════════════════════════════════════ -->
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-icon">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="8" fill="var(--accent)"/>
+        <path d="M8 26L10 16h16l2 10H8z" fill="white" opacity=".9"/>
+        <path d="M11 16l2-6h10l2 6" fill="white" opacity=".6"/>
+        <circle cx="12.5" cy="26.5" r="2" fill="var(--accent)"/>
+        <circle cx="23.5" cy="26.5" r="2" fill="var(--accent)"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Smart Car Parking System</h1>
+      <p class="header-sub">20 Slots &nbsp;·&nbsp; Dijkstra's Shortest Path &nbsp;·&nbsp; UDP Protocol</p>
+    </div>
+    <div class="client-badge">
+      <span class="client-label">This PC</span>
+      <span class="client-id-val" id="client-id-display">CLIENT-1</span>
+    </div>
+    <div class="conn-badge" id="conn-badge">
+      <span class="conn-dot"></span>
+      <span id="conn-label">Connecting...</span>
+    </div>
+  </header>
+
+  <!-- My status bar -->
+  <div class="my-status-bar">
+    <span class="mys-label">My Status:</span>
+    <span class="my-slot-val idle" id="my-slot-display">Not parked</span>
+    <span class="mys-sep">|</span>
+    <span class="mys-label">Client:</span>
+    <span class="mys-val" id="client-id-status">CLIENT-1</span>
+    <span class="mys-sep">|</span>
+    <span class="mys-label">Free Slots:</span>
+    <span class="mys-val" id="stat-num-avail" style="color:var(--green)">17</span>
+    <span class="mys-sep">|</span>
+    <span class="mys-label">Occupied:</span>
+    <span class="mys-val" id="stat-num-occ" style="color:var(--red)">3</span>
+    <span class="mys-sep">|</span>
+    <span class="mys-label">Last Dist:</span>
+    <span class="mys-val" id="stat-last-dist">--</span>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Left: Parking lot -->
+    <section class="panel slots-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Parking Lot — 20 Slots</h2>
+        <div class="legend">
+          <span class="leg free">Free</span>
+          <span class="leg occupied">Occupied</span>
+          <span class="leg mine">My Slot</span>
+          <span class="leg prefill">Pre-filled</span>
+        </div>
+      </div>
+
+      <div class="entry-lane">
+        <div class="entry-node">
+          <svg width="18" height="18" viewBox="0 0 20 20">
+            <circle cx="10" cy="10" r="9" fill="var(--accent)" opacity=".15" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="10" y="14" text-anchor="middle" font-size="9" font-family="DM Mono" fill="var(--accent)" font-weight="500">IN</text>
+          </svg>
+          Entry Point
+        </div>
+        <div class="entry-road"></div>
+        <div class="entry-node" style="opacity:.4">EXIT</div>
+      </div>
+
+      <!-- Row labels + slot grid -->
+      <div class="parking-lot">
+        <div class="row-label">Row A<br/><span>Nearest</span></div>
+        <div class="slots-grid" id="slots-grid-a"></div>
+        <div class="road-strip"></div>
+        <div class="row-label">Row B</div>
+        <div class="slots-grid" id="slots-grid-b"></div>
+        <div class="road-strip"></div>
+        <div class="row-label">Row C</div>
+        <div class="slots-grid" id="slots-grid-c"></div>
+        <div class="road-strip"></div>
+        <div class="row-label">Row D<br/><span>Farthest</span></div>
+        <div class="slots-grid" id="slots-grid-d"></div>
+      </div>
+
+      <!-- Dijkstra distances panel -->
+      <div class="path-info">
+        <div class="path-title">Dijkstra Distances from Entry</div>
+        <div class="path-distances" id="path-distances">
+          Click Park Vehicle to see shortest path calculation.
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Controls -->
+    <aside class="panel controls-panel">
+
+      <div class="control-block">
+        <h3 class="block-title">Park Vehicle</h3>
+        <p class="block-desc">Dijkstra's algorithm finds the nearest free slot and shows a confirmation popup. You can accept or choose a different slot.</p>
+        <button class="btn btn-park" id="btn-park" onclick="doPark()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="5" width="12" height="8" rx="2" fill="currentColor" opacity=".8"/>
+            <rect x="4" y="3" width="8" height="4" rx="1" fill="currentColor" opacity=".5"/>
+            <circle cx="5" cy="13" r="1.5" fill="white"/>
+            <circle cx="11" cy="13" r="1.5" fill="white"/>
+          </svg>
+          Park Vehicle
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-block">
+        <h3 class="block-title">Exit Slot</h3>
+        <p class="block-desc">Enter your slot number (1–20) or click your slot card (highlighted purple) to exit.</p>
+        <div class="exit-row">
+          <input type="number" id="exit-input" class="exit-input" min="1" max="20" placeholder="Slot #"/>
+          <button class="btn btn-exit" id="btn-exit" onclick="doExit()">Exit</button>
+        </div>
+        <p class="input-hint">Enter 1 – 20  |  Click your purple slot to auto-fill</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-block">
+        <h3 class="block-title">Server Response</h3>
+        <div class="response-box" id="response-box">
+          <span class="response-idle">Waiting for action...</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-block">
+        <h3 class="block-title">Waiting Queue</h3>
+        <div class="queue-panel" id="queue-list">
+          <div class="queue-empty">No clients waiting</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-block log-block">
+        <div class="log-header">
+          <h3 class="block-title">Activity Log</h3>
+          <button class="btn-clear" onclick="clearLog()">Clear</button>
+        </div>
+        <div class="log-scroll" id="log-scroll">
+          <div class="log-line info">[system] Ready. Open tabs with ?client=CLIENT-N</div>
+        </div>
+      </div>
+
+    </aside>
+  </div><!-- /main-grid -->
+
+  <footer class="site-footer">
+    Smart Car Parking System v4.0 &nbsp;·&nbsp; 20 Slots &nbsp;·&nbsp; UDP Port 2100 &nbsp;·&nbsp; Dijkstra's Algorithm &nbsp;·&nbsp; CN Mini Project
+  </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
