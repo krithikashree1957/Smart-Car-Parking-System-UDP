@@ -69,7 +69,5 @@ http://localhost:8080
 
 ---
 
-## Team Members
-
-* KRITHIKA SHREE.K
-* MYTHILY.S
+👩‍💻 Author
+Krithika Shree K M.Tech Integrated Software Engineering — VIT Vellore GitHub: @krithikashree1957
