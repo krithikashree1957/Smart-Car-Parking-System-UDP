@@ -70,4 +70,7 @@ http://localhost:8080
 ---
 
 👩‍💻 Author
-Krithika Shree K M.Tech Integrated Software Engineering — VIT Vellore GitHub: @krithikashree1957
+
+**Krithika Shree K**  
+M.Tech Integrated Software Engineering — VIT Vellore  
+GitHub: [@krithikashree1957](https://github.com/krithikashree1957)
